@@ -27,17 +27,18 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh """
-                    mvn sonar:sonar \
-                      -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                      -Dsonar.projectName="${SONAR_PROJECT_NAME}" \
-                      -Dsonar.host.url=${SONAR_HOST_URL}
-                    """
-                }
-            }
+      stage('SonarQube Analysis') {
+    steps {
+        withSonarQubeEnv('SonarQube') {
+            sh """
+            mvn sonar:sonar \
+              -Dsonar.projectKey=students-management \
+              -Dsonar.projectName="Students Management"
+            """
+        }
+    }
+}
+
         }
     }
 
