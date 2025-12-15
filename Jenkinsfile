@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven'        // doit exister dans Jenkins
-        jdk 'Java17'         // ou Java11 selon ton projet
+        maven 'Maven-3'
+        jdk 'JDK17'
     }
 
     environment {
@@ -45,7 +45,6 @@ pipeline {
                 sh 'docker build -t student-management-app .'
             }
         }
-
     }
 
     post {
