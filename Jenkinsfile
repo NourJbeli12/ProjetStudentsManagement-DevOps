@@ -8,19 +8,18 @@ pipeline {
 
     environment {
         IMAGE_NAME = "nourjbelil23/student-app"
-        K8S_NAMESPACE = "devops"
     }
 
     stages {
 
-        stage('Git Checkout') {
+        stage('Checkout') {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/NourJbeli12/ProjetStudentsManagement-DevOps.git'
             }
         }
 
-        stage('Build with Maven') {
+        stage('Build Maven') {
             steps {
                 sh 'mvn clean package -DskipTests'
             }
@@ -28,26 +27,23 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withCredentials([string(credentialsId: 'jenkins-sonar', variable: 'SONAR_TOKEN')]) {
-                    withSonarQubeEnv('SonarQube') {
-                        sh '''
-                        mvn sonar:sonar \
-                        -Dsonar.projectKey=students-management \
-                        -Dsonar.projectName="Students Management" \
-                        -Dsonar.login=$SONAR_TOKEN
-                        '''
-                    }
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                    mvn sonar:sonar \
+                      -Dsonar.projectKey=student-management \
+                      -Dsonar.projectName="Student Management"
+                    '''
                 }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:latest ."
+                sh 'docker build -t $IMAGE_NAME:latest .'
             }
         }
 
-        stage('Push Docker Image to DockerHub') {
+        stage('Push Docker Image') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'docker-hub-credentials',
@@ -55,19 +51,18 @@ pipeline {
                     passwordVariable: 'DOCKER_PASSWORD'
                 )]) {
                     sh '''
-                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-                        docker push ${IMAGE_NAME}:latest
+                    echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                    docker push $IMAGE_NAME:latest
                     '''
                 }
             }
         }
 
-        stage('Deploy to Minikube (Kubernetes)') {
+        stage('Deploy to Minikube') {
             steps {
                 sh '''
-                kubectl apply -f k8s/namespace.yaml || true
-                kubectl apply -f k8s/deployment.yaml
-                kubectl apply -f k8s/service.yaml
+                kubectl apply -f mysql-deployment.yml
+                kubectl apply -f student-deployment.yml
                 '''
             }
         }
@@ -75,7 +70,7 @@ pipeline {
 
     post {
         success {
-            echo '✅ Pipeline terminé avec succès (Docker + Minikube + SonarQube)'
+            echo '✅ Pipeline terminé avec succès'
         }
         failure {
             echo '❌ Pipeline échoué'
