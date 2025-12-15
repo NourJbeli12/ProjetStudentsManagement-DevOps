@@ -25,17 +25,21 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh '''
-                    mvn sonar:sonar \
-                      -Dsonar.projectKey=student-management \
-                      -Dsonar.projectName="Student Management"
-                    '''
-                }
+      stage('SonarQube Analysis') {
+    steps {
+        withSonarQubeEnv('SonarQube') {
+            withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                sh """
+                mvn sonar:sonar \
+                  -Dsonar.projectKey=student-management \
+                  -Dsonar.projectName="Student Management" \
+                  -Dsonar.token=$SONAR_TOKEN
+                """
             }
         }
+    }
+}
+
 
         stage('Build Docker Image') {
             steps {
