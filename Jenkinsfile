@@ -21,7 +21,7 @@ pipeline {
             }
         }
 
-        stage('Build with Maven (skip tests)') {
+        stage('Build with Maven') {
             steps {
                 sh 'mvn clean package -DskipTests'
             }
@@ -37,12 +37,6 @@ pipeline {
                       -Dsonar.host.url=${SONAR_HOST_URL}
                     """
                 }
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                sh 'docker build -t student-management-app .'
             }
         }
     }
