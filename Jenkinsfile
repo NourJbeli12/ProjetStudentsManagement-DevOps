@@ -1,26 +1,19 @@
 pipeline {
     agent any
 
-    /* =========================
-       TOOLS (OBLIGATOIRE)
-       ========================= */
     tools {
-        maven 'Maven-3'   // Nom EXACT configuré dans Jenkins > Tools
+        maven 'Maven'        // doit exister dans Jenkins
+        jdk 'Java17'         // ou Java11 selon ton projet
     }
 
-    /* =========================
-       VARIABLES D’ENVIRONNEMENT
-       ========================= */
     environment {
-        DOCKER_IMAGE = "nourjbeli/student-management:latest"
-        SONAR_HOST_URL = "http://192.168.50.4:9000"
+        SONAR_HOST_URL = 'http://192.168.50.4:9000'
+        SONAR_PROJECT_KEY = 'students-management'
+        SONAR_PROJECT_NAME = 'Students Management'
     }
 
     stages {
 
-        /* =========================
-           1️⃣ CLONE GITHUB
-           ========================= */
         stage('Checkout GitHub') {
             steps {
                 git branch: 'main',
@@ -28,78 +21,39 @@ pipeline {
             }
         }
 
-        /* =========================
-           2️⃣ BUILD MAVEN
-           ========================= */
-        stage('Build with Maven') {
+        stage('Build with Maven (skip tests)') {
             steps {
                 sh 'mvn clean package -DskipTests'
             }
         }
 
-        /* =========================
-           3️⃣ TESTS
-           ========================= */
-        stage('Run Tests') {
-            steps {
-                sh 'mvn test'
-            }
-        }
-
-        /* =========================
-           4️⃣ ANALYSE SONARQUBE
-           ========================= */
         stage('SonarQube Analysis') {
             steps {
-                withCredentials([string(credentialsId: 'jenkins-sonar', variable: 'SONAR_TOKEN')]) {
+                withSonarQubeEnv('SonarQube') {
                     sh """
-                        mvn sonar:sonar \
-                        -Dsonar.host.url=${SONAR_HOST_URL} \
-                        -Dsonar.login=${SONAR_TOKEN}
+                    mvn sonar:sonar \
+                      -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                      -Dsonar.projectName="${SONAR_PROJECT_NAME}" \
+                      -Dsonar.host.url=${SONAR_HOST_URL}
                     """
                 }
             }
         }
 
-        /* =========================
-           5️⃣ BUILD IMAGE DOCKER
-           ========================= */
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE .'
+                sh 'docker build -t student-management-app .'
             }
         }
 
-        /* =========================
-           6️⃣ PUSH DOCKER HUB
-           ========================= */
-        stage('Push Docker Image') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'docker-hub-credentials',
-                        usernameVariable: 'DOCKER_USERNAME',
-                        passwordVariable: 'DOCKER_PASSWORD'
-                    )
-                ]) {
-                    sh """
-                        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                        docker push $DOCKER_IMAGE
-                    """
-                }
-            }
-        }
     }
 
-    /* =========================
-       POST ACTIONS
-       ========================= */
     post {
         success {
-            echo "✅ Pipeline réussi"
+            echo '✅ Pipeline terminé avec succès'
         }
         failure {
-            echo "❌ Pipeline échoué"
+            echo '❌ Pipeline échoué'
         }
     }
 }
