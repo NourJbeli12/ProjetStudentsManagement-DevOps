@@ -7,7 +7,6 @@ pipeline {
     }
 
     environment {
-        SONAR_HOST_URL = 'http://192.168.50.4:9000'
         SONAR_PROJECT_KEY = 'students-management'
         SONAR_PROJECT_NAME = 'Students Management'
     }
@@ -27,18 +26,16 @@ pipeline {
             }
         }
 
-      stage('SonarQube Analysis') {
-    steps {
-        withSonarQubeEnv('SonarQube') {
-            sh """
-            mvn sonar:sonar \
-              -Dsonar.projectKey=students-management \
-              -Dsonar.projectName="Students Management"
-            """
-        }
-    }
-}
-
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh """
+                    mvn sonar:sonar \
+                      -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                      -Dsonar.projectName="${SONAR_PROJECT_NAME}"
+                    """
+                }
+            }
         }
     }
 
@@ -51,3 +48,4 @@ pipeline {
         }
     }
 }
+
