@@ -62,13 +62,13 @@ pipeline {
         }
 
         stage('Deploy to Minikube') {
-            steps {
-                sh '''
-                kubectl apply -f mysql-deployment.yml
-                kubectl apply -f student-deployment.yml
-                '''
-            }
-        }
+    steps {
+        sh '''
+        kubectl apply -f k8s/mysql-deployment.yml
+        kubectl apply -f k8s/student-deployment.yml
+        '''
+    }
+}
     }
 
     post {
