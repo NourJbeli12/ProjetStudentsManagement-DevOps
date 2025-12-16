@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        IMAGE_NAME = "nourjbelil23/student-app"
+        IMAGE_NAME = "nourjbeli123/student-app"
     }
 
     stages {
@@ -25,21 +25,20 @@ pipeline {
             }
         }
 
-      stage('SonarQube Analysis') {
-    steps {
-        withSonarQubeEnv('SonarQube') {
-            withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                sh """
-                mvn sonar:sonar \
-                  -Dsonar.projectKey=student-management \
-                  -Dsonar.projectName="Student Management" \
-                  -Dsonar.token=$SONAR_TOKEN
-                """
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                        sh """
+                        mvn sonar:sonar \
+                          -Dsonar.projectKey=student-management \
+                          -Dsonar.projectName="Student Management" \
+                          -Dsonar.token=$SONAR_TOKEN
+                        """
+                    }
+                }
             }
         }
-    }
-}
-
 
         stage('Build Docker Image') {
             steps {
